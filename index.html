@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Inversión</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Registro -->
+    <div id="registro" class="hidden">
+        <h2>Registro</h2>
+        <input type="text" id="numeroRegistro" placeholder="Número de teléfono" required>
+        <input type="password" id="passwordRegistro" placeholder="Contraseña" required>
+        <input type="text" id="codigoInvitacion" placeholder="Código de Invitación (Opcional)">
+        <button onclick="registrar()">Registrar</button>
+        <p>¿Ya tienes cuenta? <a href="#" onclick="mostrarLogin()">Iniciar Sesión</a></p>
+    </div>
+
+    <!-- Inicio de Sesión -->
+    <div id="login">
+        <h2>Iniciar Sesión</h2>
+        <input type="text" id="numeroLogin" placeholder="Número de teléfono" required>
+        <input type="password" id="passwordLogin" placeholder="Contraseña" required>
+        <button onclick="iniciarSesion()">Iniciar Sesión</button>
+        <p>¿No tienes cuenta? <a href="#" onclick="mostrarRegistro()">Regístrate</a></p>
+    </div>
+
+    <!-- Página Principal -->
+    <div id="principal" class="hidden">
+        <h2>Bienvenido</h2>
+        <p id="saldo"></p>
+        <button onclick="cerrarSesion()">Cerrar sesión</button>
+        <h3>Opciones de Inversión</h3>
+        <div class="vip">
+            <h4>VIP 1</h4>
+            <p>Costo: $5,000</p>
+            <p>Ingreso Diario: $500</p>
+            <p>Días: 10</p>
+            <button onclick="invertir(5000, 500, 10)">Invertir</button>
+        </div>
+        <div class="vip">
+            <h4>VIP 2</h4>
+            <p>Costo: $10,000</p>
+            <p>Ingreso Diario: $1,200</p>
+            <p>Días: 15</p>
+            <button onclick="invertir(10000, 1200, 15)">Invertir</button>
+        </div>
+        <div class="vip">
+            <h4>VIP 3</h4>
+            <p>Costo: $20,000</p>
+            <p>Ingreso Diario: $2,500</p>
+            <p>Días: 20</p>
+            <button onclick="invertir(20000, 2500, 20)">Invertir</button>
+        </div>
+
+        <h3>Recargar Saldo</h3>
+        <input type="number" id="cantidadAgregar" placeholder="Cantidad a recargar">
+        <button onclick="solicitarRecargaTelegram()">Solicitar Recarga</button>
+    </div>
+
+    <!-- Panel Administrativo -->
+    <div id="adminPanel" class="hidden">
+        <h3>Panel Administrativo</h3>
+        <p>Bienvenido, Administrador.</p>
+        <input type="text" id="usuarioSaldo" placeholder="Número del usuario">
+        <input type="number" id="cantidadSaldo" placeholder="Cantidad a agregar">
+        <button onclick="aumentarSaldo()">Aumentar Saldo</button>
+        <button onclick="cerrarSesion()">Cerrar sesión</button>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7fc;
+    margin: 0;
+    padding: 0;
+}
+
+h2, h3, h4 {
+    color: #333;
+}
+
+input, button {
+    margin: 10px 0;
+    padding: 10px;
+    width: 250px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.vip {
+    background-color: #e0f7fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.hidden {
+    display: none;
+}
+
+#login, #registro, #principal, #adminPanel {
+    padding: 20px;
+    width: 300px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+}
+
+a {
+    color: #007BFF;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#saldo {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+button {
+    display: block;
+    width: 100%;
+}
+
+</style>
+<script>
+    // Mostrar y ocultar formularios
+function mostrarRegistro() {
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("registro").classList.remove("hidden");
+}
+
+function mostrarLogin() {
+    document.getElementById("registro").classList.add("hidden");
+    document.getElementById("login").classList.remove("hidden");
+}
+
+// Función para registrar un usuario
+function registrar() {
+    const numero = document.getElementById("numeroRegistro").value;
+    const password = document.getElementById("passwordRegistro").value;
+    const codigoInvitacion = document.getElementById("codigoInvitacion").value;
+    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+
+    if (!numero || !password) {
+        alert("Por favor, completa todos los campos.");
+        return;
+    }
+
+    if (usuarios.some((u) => u.numero === numero)) {
+        alert("Este número ya está registrado.");
+        return;
+    }
+
+    usuarios.push({ numero, password, saldo: 5500, inversiones: [] });
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    alert("Registro exitoso. Por favor, inicia sesión.");
+    mostrarLogin();
+}
+
+// Función para iniciar sesión
+function iniciarSesion() {
+    const numero = document.getElementById("numeroLogin").value;
+    const password = document.getElementById("passwordLogin").value;
+    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+
+    // Verificar si el usuario es el administrador
+    if (numero === "3115463689" && password === "tatan10k") {
+        localStorage.setItem("numeroActivo", numero);
+        mostrarAdminPanel();
+        return;
+    }
+
+    // Buscar el usuario en la base de datos local
+    const usuario = usuarios.find((u) => u.numero === numero && u.password === password);
+
+    if (usuario) {
+        localStorage.setItem("numeroActivo", numero);
+        mostrarPrincipal(usuario.saldo);
+    } else {
+        alert("Número o contraseña incorrectos.");
+    }
+}
+
+// Mostrar la página principal
+function mostrarPrincipal(saldoInicial) {
+    document.getElementById("registro").classList.add("hidden");
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("principal").classList.remove("hidden");
+    document.getElementById("saldo").textContent = `Saldo: $${saldoInicial}`;
+}
+
+// Mostrar el panel administrativo
+function mostrarAdminPanel() {
+    document.getElementById("registro").classList.add("hidden");
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("principal").classList.add("hidden");
+    document.getElementById("adminPanel").classList.remove("hidden");
+}
+
+// Invertir en VIP
+function invertir(costo, ingresoDiario, dias) {
+    const numeroActivo = localStorage.getItem("numeroActivo");
+    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    const usuario = usuarios.find((u) => u.numero === numeroActivo);
+
+    if (usuario.saldo >= costo) {
+        usuario.saldo -= costo;
+        usuario.inversiones.push({ ingresoDiario, dias });
+        localStorage.setItem("usuarios", JSON.stringify(usuarios));
+        alert("Inversión realizada con éxito.");
+        mostrarPrincipal(usuario.saldo);
+    } else {
+        alert("Saldo insuficiente.");
+    }
+}
+
+// Solicitar recarga por Telegram
+function solicitarRecargaTelegram() {
+    const cantidad = document.getElementById("cantidadAgregar").value;
+    const numero = localStorage.getItem("numeroActivo");
+
+    if (!cantidad || cantidad <= 0) {
+        alert("Por favor, ingrese una cantidad válida para recargar.");
+        return;
+    }
+
+    const mensaje = `Hola, solicito una recarga por $${cantidad}. Mi número de usuario es: ${numero}.`;
+    const enlaceTelegram = `https://t.me/<TU_USUARIO_TELEGRAM>?text=${encodeURIComponent(mensaje)}`;
+
+    window.open(enlaceTelegram, "_blank");
+    alert("Solicitud de recarga enviada. Por favor, procesa la recarga manualmente.");
+}
+
+// Aumentar saldo manualmente
+function aumentarSaldo() {
+    const numeroUsuario = document.getElementById("usuarioSaldo").value;
+    const cantidad = Number(document.getElementById("cantidadSaldo").value);
+    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    const usuario = usuarios.find((u) => u.numero === numeroUsuario);
+
+    if (usuario) {
+        usuario.saldo += cantidad;
+        localStorage.setItem("usuarios", JSON.stringify(usuarios));
+        alert(`Saldo aumentado. Nuevo saldo: $${usuario.saldo}`);
+    } else {
+        alert("Usuario no encontrado.");
+    }
+}
+
+// Función de cierre de sesión
+function cerrarSesion() {
+    localStorage.removeItem("numeroActivo");
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("principal").classList.add("hidden");
+    mostrarLogin();
+}
+
+</script>
